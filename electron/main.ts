@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
+import { spawn } from 'child_process'
 
 let mainWindow: BrowserWindow | null
 
@@ -10,7 +11,7 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 //     ? process.resourcesPath
 //     : app.getAppPath()
 
-function createWindow () {
+function createWindow() {
   mainWindow = new BrowserWindow({
     // icon: path.join(assetsPath, 'assets', 'icon.png'),
     width: 1100,
@@ -29,10 +30,23 @@ function createWindow () {
     mainWindow = null
   })
 
+  ipcMain.on('getProcessList', (event) => {
+    const taskList = spawn('tasklist', ['/FO', 'CSV', '/NH']);
+
+    let data = '';
+    taskList.stdout.on('data', (chunk) => {
+      data += chunk.toString();
+    });
+
+    taskList.on('close', () => {
+      event.reply('processList', data);
+    });
+  });
+
   mainWindow.setMenu(null);
 }
 
-async function registerListeners () {
+async function registerListeners() {
   /**
    * This comes from bridge integration, check bridge.ts
    */

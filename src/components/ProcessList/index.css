@@ -1,0 +1,24 @@
+.table-container {
+    width: 100%;
+    padding: 48px;
+}
+
+.processes-table {
+    width: 100%;
+    color: white;
+    border-collapse: collapse;
+}
+
+.processes-table th,
+td {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.processes-table tr:nth-child(odd) {
+    background-color: #221E2A;
+}
+
+.processes-table tr:hover {
+    background-color: #2F2D36;
+} 
