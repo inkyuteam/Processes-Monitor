@@ -2,6 +2,7 @@ export interface Column {
   key: string;
   title: string;
   dataKey: string;
+  type: string;
 }
 
 export interface DataItem {
@@ -13,6 +14,7 @@ export interface CustomizableTableProps {
   data: DataItem[];
   columns: Column[];
   onRowClick?: (id: number) => void;
+  logHandler?: (sortColumn: string | null, sortOrder: SortOrder) => void;
 }
 
 export interface TableRowProps {

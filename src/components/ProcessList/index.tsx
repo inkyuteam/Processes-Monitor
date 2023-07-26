@@ -1,30 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import CustomizableTable from "../CustomizableTable";
 import { DataItem } from "../../interfaces";
+import { columnsForLinux, columnsForWindows } from "../../config";
+import { checkOperatingSystem } from "../../controller/osController";
 
 const intervalDelay = 3000;
 
-const checkOperatingSystem = () => {
-  const platform = window.navigator.platform.toLowerCase();
-  if (platform.indexOf('win') !== -1) {
-    return 'Windows';
-  } else if (platform.indexOf('linux') !== -1) {
-    return 'Linux';
-  } else {
-    return 'Unknown';
-  }
-}
-
 const ProcessList = () => {
   const [data, setData] = useState<DataItem[]>([]);
-  const [operatingSystem, setOperatingSystem] = useState(checkOperatingSystem());
+  const [operatingSystem, setOperatingSystem] = useState(
+    checkOperatingSystem()
+  );
 
   useEffect(() => {
     const getAllProcessesInfo = () => {
       window.electronAPI.getAllProcessesInfo().then((data: DataItem[]) => {
         return setData(
           data.map((item: DataItem) => {
-            return { ...{id: item.pid}, ...item };
+            return { ...{ id: item.pid }, ...item };
           })
         );
       });
@@ -41,18 +34,10 @@ const ProcessList = () => {
 
   const columns = useMemo(() => {
     switch (operatingSystem) {
-      case 'Windows':
-        return [
-          { key: "imageName", title: "Image Name", dataKey: "imageName" },
-          { key: "pid", title: "PID", dataKey: "pid" },
-          { key: "memUsage", title: "Mem Usage", dataKey: "memUsage" },
-        ];
-      case 'Linux':
-        return [
-          { key: "pid", title: "PID", dataKey: "pid" },
-          { key: "rss", title: "RSS", dataKey: "rss" },
-          { key: "cmd", title: "CMD", dataKey: "cmd" },
-        ];
+      case "Windows":
+        return columnsForWindows;
+      case "Linux":
+        return columnsForLinux;
       default:
         return [];
     }
@@ -66,9 +51,15 @@ const ProcessList = () => {
             Process List
           </span>
         </h1>
+        <h1 className="absolute top-4 right-4 text-white">
+          You're on {operatingSystem} Environment.
+        </h1>
         <CustomizableTable
           data={data}
           columns={columns}
+          logHandler={(sortColumn, sortOrder) =>
+            window.electronAPI.logSortingAction(sortColumn, sortOrder)
+          }
         />
       </div>
     </>
