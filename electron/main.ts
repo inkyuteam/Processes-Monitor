@@ -22,14 +22,14 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      devTools: true,
+      // devTools: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
     }
   })
 
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null
