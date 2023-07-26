@@ -1,62 +1,50 @@
 import { useEffect, useState } from "react";
-import { ipcRenderer } from "electron";
-import "./index.css";
+import CustomizableTable from "../CustomizableTable";
 
 const ProcessList = () => {
-  const [processes, setProcesses] = useState([]);
-
-  const parseCSVData = (csvData) => {
-    const lines = csvData.trim().split("\n");
-    const headers = lines[0].split(",");
-    const result = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const obj = {};
-      const currentLine = lines[i].split(",");
-
-      for (let j = 0; j < headers.length; j++) {
-        obj[headers[j]] = currentLine[j].trim();
-      }
-
-      result.push(obj);
-    }
-
-    return result;
-  };
+  const [data, setData] = useState([]);
+  const [columns, setColumns] = useState([]);
 
   useEffect(() => {
-    ipcRenderer.send("getProcessList");
+    setColumns([
+      { key: "imageName", title: "Image Name", dataKey: "imageName" },
+      { key: "pid", title: "PID", dataKey: "pid" },
+      { key: "memUsage", title: "Mem Usage", dataKey: "memUsage" },
+    ]);
 
-    ipcRenderer.on("processList", (_, data) => {
-      // Parse the data received from the main process and update the state
-      const parsedData = parseCSVData(data);
-      setProcesses(parsedData);
-    });
+    const getAllProcessesInfo = () => {
+      window.electronAPI.getAllProcessesInfo().then((data) => {
+        setData(
+          data.map((item) => {
+            return { id: item.pid, ...item };
+          })
+        );
+      });
+    };
+
+    getAllProcessesInfo();
+
+    const intervalId = setInterval(() => {
+      getAllProcessesInfo();
+    }, 3000);
 
     return () => {
-      ipcRenderer.removeAllListeners("processList"); // Clean up the event listener when the component unmounts
+      clearInterval(intervalId);
     };
   }, []);
 
   return (
     <>
-      <div className="table-container">
-        <table className="processes-table">
-          <thead>
-            <th>Image Name</th>
-            <th>PID</th>
-            <th>Mem Usage</th>
-          </thead>
-          <tbody>
-            {processes.map((process) => (
-              <tr key={process.pid}>
-                <td>{process.image}</td>
-                <td>{process.pid}</td>
-                <td>{process.memUsage}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="p-12">
+        <h1 className="mb-4 text-3xl font-extrabold text-gray-900 dark:text-white md:text-5xl lg:text-6xl">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
+            Process List
+          </span>
+        </h1>
+        <CustomizableTable
+          data={data}
+          columns={columns}
+        />
       </div>
     </>
   );

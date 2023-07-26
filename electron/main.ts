@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
-import { spawn } from 'child_process'
+import { logSortingAction } from '../controller/logController'
+import { getAllProcessesInfo } from '../controller/processController'
+import { getProcessesHandler, sortProcessesHandler } from '../handler/ipcHandlers'
 
 let mainWindow: BrowserWindow | null
 
@@ -20,30 +22,24 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      devTools: true,
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
     }
   })
 
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
 
+  mainWindow.webContents.openDevTools();
+
   mainWindow.on('closed', () => {
     mainWindow = null
   })
 
-  ipcMain.on('getProcessList', (event) => {
-    const taskList = spawn('tasklist', ['/FO', 'CSV', '/NH']);
-
-    let data = '';
-    taskList.stdout.on('data', (chunk) => {
-      data += chunk.toString();
-    });
-
-    taskList.on('close', () => {
-      event.reply('processList', data);
-    });
-  });
-
   mainWindow.setMenu(null);
+
+  //handle
+  ipcMain.handle("get-processes", getProcessesHandler);
+  ipcMain.handle("sort-processes", sortProcessesHandler);
 }
 
 async function registerListeners() {

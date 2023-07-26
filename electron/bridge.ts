@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+const { contextBridge, ipcRenderer } = require('electron');
 
 export const api = {
   /**
@@ -19,6 +19,19 @@ export const api = {
   on: (channel: string, callback: Function) => {
     ipcRenderer.on(channel, (_, data) => callback(data))
   },
+
+  getAllProcessesInfo: async () => {
+    try {
+      return await ipcRenderer.invoke('get-processes');
+    } catch (err) {
+      console.error('Error retrieving process information:', err);
+      return [];
+    }
+  },
+
+  logSortingAction: async (sortKey, sortOrder) => {
+    await ipcRenderer.invoke('sort-processes', sortKey, sortOrder);
+  },
 }
 
-contextBridge.exposeInMainWorld('Main', api)
+contextBridge.exposeInMainWorld('electronAPI', api);
