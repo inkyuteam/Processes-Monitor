@@ -32,7 +32,7 @@ const CustomizableTable: React.FC<CustomizableTableProps> = ({
     const compareData = (a:DataItem, b:DataItem): 1 | 0 | -1 => {
       if(!sortColumn) return 0;
       let arg0, arg1;
-      if (sortColumn === "imageName") {
+      if (sortColumn === "imageName" || sortColumn === "cmd") {
         arg0 = a[sortColumn];
         arg1 = b[sortColumn];
       } else {
