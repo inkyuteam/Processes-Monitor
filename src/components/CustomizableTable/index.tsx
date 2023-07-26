@@ -3,6 +3,7 @@ import {
   CustomizableTableProps,
   TableRowProps,
   SortOrder,
+  DataItem,
 } from "../../interfaces";
 
 const CustomizableTable: React.FC<CustomizableTableProps> = ({
@@ -28,7 +29,8 @@ const CustomizableTable: React.FC<CustomizableTableProps> = ({
   };
 
   const sortedData = React.useMemo(() => {
-    const compareData = (a, b) => {
+    const compareData = (a:DataItem, b:DataItem): 1 | 0 | -1 => {
+      if(!sortColumn) return 0;
       let arg0, arg1;
       if (sortColumn === "imageName") {
         arg0 = a[sortColumn];
@@ -45,7 +47,7 @@ const CustomizableTable: React.FC<CustomizableTableProps> = ({
     };
 
     if (sortColumn !== null) {
-      const sorted = data.slice().sort((a, b) => compareData(a, b));
+      const sorted = data.slice().sort((a: DataItem, b: DataItem) => compareData(a, b));
 
       return sorted;
     }
@@ -87,8 +89,9 @@ const CustomizableTable: React.FC<CustomizableTableProps> = ({
 
 const TableRow: React.FC<TableRowProps> = React.memo(
   ({ data, columns, oddRow }) => {
-    const [previousData, setPreviousData] = useState(null);
+    const [previousData, setPreviousData] = useState<DataItem>();
     const [animationClass, setAnimationClass] = useState("");
+    const [changedKeyList, setChangedKeyList] = useState<string[]>([]);
 
     const rowClass = oddRow ? "bg-oddColor" : "";
 
@@ -97,11 +100,15 @@ const TableRow: React.FC<TableRowProps> = React.memo(
         const animateIdx = oddRow
           ? "animate-oddBgChange"
           : "animate-evenBgChange";
-        const temp =
-          JSON.stringify(previousData) != JSON.stringify(data)
-            ? animateIdx
-            : "";
-        setAnimationClass(temp);
+        const keys = Object.keys(previousData) as string[];
+        let keyList: string[] = [];
+        for(const key of keys) {
+          if(previousData[key] != data[key]){
+            keyList.push(key);
+          }
+        }
+        setChangedKeyList(keyList);
+        setAnimationClass(keyList.length > 0 ? animateIdx: '');
         setTimeout(() => setAnimationClass(""), 2000);
       }
       setPreviousData(data);
@@ -111,7 +118,7 @@ const TableRow: React.FC<TableRowProps> = React.memo(
       <tr className={`cursor-pointer hover:bg-hoverColor ${rowClass}`}>
         {columns.map((column) => (
           <td
-            className={`p-2 ${column.key === "memUsage" ? animationClass : ""}`}
+            className={`p-2 ${changedKeyList.includes(column.key) ? animationClass : ""}`}
             key={column.key}
           >
             {data[column.dataKey]}

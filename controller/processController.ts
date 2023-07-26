@@ -32,8 +32,7 @@ export const getAllProcessesInfo = () => {
       } else {
         // Process for non-Windows (ps output)
         const processes = stdout.trim().split('\n').slice(1).map((line) => {
-          const [pid, rss, ...cmdArray] = line.trim().split(/\s+/);
-          const cmd = cmdArray.join(' ');
+          const [pid, rss, cmd] = line.trim().split(/\s+/);
           return {
             pid,
             rss,

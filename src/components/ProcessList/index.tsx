@@ -1,22 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CustomizableTable from "../CustomizableTable";
+import { DataItem } from "../../interfaces";
+
+const intervalDelay = 3000;
+
+const checkOperatingSystem = () => {
+  const platform = window.navigator.platform.toLowerCase();
+  if (platform.indexOf('win') !== -1) {
+    return 'Windows';
+  } else if (platform.indexOf('linux') !== -1) {
+    return 'Linux';
+  } else {
+    return 'Unknown';
+  }
+}
 
 const ProcessList = () => {
-  const [data, setData] = useState([]);
-  const [columns, setColumns] = useState([]);
+  const [data, setData] = useState<DataItem[]>([]);
+  const [operatingSystem, setOperatingSystem] = useState(checkOperatingSystem());
 
   useEffect(() => {
-    setColumns([
-      { key: "imageName", title: "Image Name", dataKey: "imageName" },
-      { key: "pid", title: "PID", dataKey: "pid" },
-      { key: "memUsage", title: "Mem Usage", dataKey: "memUsage" },
-    ]);
-
     const getAllProcessesInfo = () => {
-      window.electronAPI.getAllProcessesInfo().then((data) => {
-        setData(
-          data.map((item) => {
-            return { id: item.pid, ...item };
+      window.electronAPI.getAllProcessesInfo().then((data: DataItem[]) => {
+        return setData(
+          data.map((item: DataItem) => {
+            return { ...{id: item.pid}, ...item };
           })
         );
       });
@@ -24,14 +32,31 @@ const ProcessList = () => {
 
     getAllProcessesInfo();
 
-    const intervalId = setInterval(() => {
-      getAllProcessesInfo();
-    }, 3000);
+    const intervalId = setInterval(getAllProcessesInfo, intervalDelay);
 
     return () => {
       clearInterval(intervalId);
     };
   }, []);
+
+  const columns = useMemo(() => {
+    switch (operatingSystem) {
+      case 'Windows':
+        return [
+          { key: "imageName", title: "Image Name", dataKey: "imageName" },
+          { key: "pid", title: "PID", dataKey: "pid" },
+          { key: "memUsage", title: "Mem Usage", dataKey: "memUsage" },
+        ];
+      case 'Linux':
+        return [
+          { key: "pid", title: "PID", dataKey: "pid" },
+          { key: "rss", title: "RSS", dataKey: "rss" },
+          { key: "cmd", title: "CMD", dataKey: "cmd" },
+        ];
+      default:
+        return [];
+    }
+  }, [operatingSystem]);
 
   return (
     <>
